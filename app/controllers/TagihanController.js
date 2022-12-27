@@ -75,7 +75,7 @@ class TagihanController {
     });
 
     await Tagihan
-      .findByIdAndUpdate(req.params.id, tagihan, {}, function (err, thetagihan) {
+      .findByIdAndUpdate(req.params._id, tagihan, {}, function (err, thetagihan) {
         if (err) {
           return next(err);
         }
@@ -113,7 +113,13 @@ class TagihanController {
               '$first': '$pembayaran'
             },
             'total_bayar': {
-              '$sum': '$pembayaran.total_bayar'
+              '$sum': {
+                '$reduce': {
+                  'input': "$pembayaran",
+                  'initialValue': 0,
+                  'in': { '$add': ["$$value", "$$this.total_bayar"] }
+                }
+              }
             },
             'total_tagihan': {
               '$first': '$total_tagihan'
@@ -200,16 +206,30 @@ class TagihanController {
             },
             'pembayaran': {
               '$first': '$pembayaran'
+            },
+            'pelanggan_id': {
+              '$first': '$pelanggan_id'
             }
           }
         }, {
           '$addFields': {
             'sisa_tagihan': {
-              '$add': [
+              '$subtract': [
                 '$total_tagihan', '$total_bayar'
               ]
             }
           }
+        },
+        {
+          '$lookup': {
+            'from': 'pelanggans',
+            'localField': 'pelanggan_id',
+            'foreignField': '_id',
+            'as': 'pelanggan'
+          }
+        },
+        {
+          '$unwind': '$pelanggan'
         }
       ], function (e, r) {
         resolve(r);

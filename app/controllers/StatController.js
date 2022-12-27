@@ -18,26 +18,51 @@ class StatController {
         //sum total_tagihan from Tagihan
         await Tagihan.aggregate([
             {
-                $group: {
-                    _id: null,
-                    total_tagihan: {
-                        $sum: "$total_tagihan"
+                '$group': {
+                    '_id': '$_id',
+        
+                    'total_bayar': {
+                      '$sum': {
+                        '$reduce': {
+                          'input': "$pembayaran",
+                          'initialValue': 0,
+                          'in': { '$add': ["$$value", "$$this.total_bayar"] }
+                        }
+                      }
                     },
-                    total_bayar: {
-                        $sum: "$pembayaran.total_bayar"
+                    'total_tagihan': {
+                      '$first': '$total_tagihan'
                     },
-                    
-                }
+                    'tanggal_tagihan': {
+                      '$first': '$tanggal_tagihan'
+                    },
+                    'keterangan': {
+                      '$first': '$keterangan'
+                    },
+                    'pembayaran': {
+                      '$first': '$pembayaran'
+                    },
+                    'pelanggan_id': {
+                      '$first': '$pelanggan_id'
+                    }
+                  }
                 
                 
             },{
-                $addFields :{
-
-                    sisa_tagihan : { $add : [ '$total_tagihan', '$total_bayar' ] }
+                '$addFields': {
+                  'sisa_tagihan': {
+                    '$subtract': [
+                      '$total_tagihan', '$total_bayar'
+                    ]
                   }
-            },{"$unset": ["_id"]}
+                }
+              },{"$unset": ["_id"]}
         ],function (e,v) {
-            total_tagihan = v[0]['sisa_tagihan'];
+            for (let index = 0; index < v.length; index++) {
+                const element = v[index];
+                total_tagihan += element['sisa_tagihan'];
+                
+            }
         });
 
         total_pelanggan = await Pelanggan.countDocuments();

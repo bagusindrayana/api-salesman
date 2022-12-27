@@ -49,7 +49,6 @@ app.get('/stat', async (req, res) => {
   }
   var statController = new StatController();
   var result = await statController.index();
-  console.log(result);
   res.send({message:"berhasil",data:result});
 });
 

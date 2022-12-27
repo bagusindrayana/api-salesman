@@ -89,9 +89,9 @@ class PelangganController {
             longitude: req.body.longitude,
         });
 
-        await Pelanggan.findByIdAndUpdate(req.params.id, pelanggan, {}, function (err, thepelanggan) {
+        await Pelanggan.findByIdAndUpdate(req.params._id, pelanggan, {}, function (err, thepelanggan) {
             if (err) {
-                return next(err);
+                console.log(err);
             }
             // Successful - redirect to pelanggan detail page.
             result = thepelanggan;
