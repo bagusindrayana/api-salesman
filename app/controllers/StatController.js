@@ -14,8 +14,7 @@ class StatController {
         var total_pelanggan = 0;
         var total_tagihan = 0;
 
-        total_pelanggan = await Pelanggan.countDocuments();
-
+    
         //sum total_tagihan from Tagihan
         await Tagihan.aggregate([
             {
@@ -41,6 +40,7 @@ class StatController {
             total_tagihan = v[0]['sisa_tagihan'];
         });
 
+        total_pelanggan = await Pelanggan.countDocuments();
 
         return {
             total_pelanggan: total_pelanggan,

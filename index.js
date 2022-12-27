@@ -49,6 +49,7 @@ app.get('/stat', async (req, res) => {
   }
   var statController = new StatController();
   var result = await statController.index();
+  console.log(result);
   res.send({message:"berhasil",data:result});
 });
 
@@ -103,6 +104,35 @@ app.post('/tagihan', async (req, res) => {
       res.status(500).send({ message: "tagihan gagal di tambah"});
     } else {
       res.send({message:"berhasil menambah tagihan",data:result});
+    }
+});
+
+//tagihan minggu ini yang belum lunas
+app.get('/tagihan-minggu-ini', async (req, res) => {
+  var user = await auth.verifyToken(req);
+    if(user == null){
+      return res.status(401).send({ message : "Token tidak valid"});
+    }
+    var tagihanController = new TagihanController();
+    var result = await tagihanController.getTagihan7Hari();
+    if(result == null){
+      res.status(500).send({ message: "tagihan gagal di muat"});
+    } else {
+      res.send({message:"berhasil memuat tagihan",data:result});
+    }
+});
+
+app.post('/bayar-tagihan/:tagihan_id', async (req, res) => {
+  var user = await auth.verifyToken(req);
+    if(user == null){
+      return res.status(401).send({ message : "Token tidak valid"});
+    }
+    var tagihanController = new TagihanController();
+    var result = await tagihanController.bayarTagihan(req.params.tagihan_id,req);
+    if(result == null){
+      res.status(500).send({ message: "pembayaran gagal di tambah"});
+    } else {
+      res.send({message:"berhasil menambah pembayaran",data:result});
     }
 });
 
