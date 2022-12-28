@@ -95,6 +95,13 @@ app.get('/pelanggan/:id', async (req, res) => {
   res.send({message:"berhasil",data:result});
 });
 
+
+app.post('/pelanggan/:id/delete', async (req, res) => {
+  var pelangganController = new PelangganController();
+  var result = await pelangganController.delete(req.params.id);
+  res.send({message:"berhasil",data:result});
+});
+
 app.get('/tagihan-pelanggan/:id', async (req, res) => {
   var tagihanController = new TagihanController();
   var result = await tagihanController.getTagihanByPelanggan(req.params.id);

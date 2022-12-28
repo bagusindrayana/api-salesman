@@ -14,15 +14,15 @@ class PelangganController {
 
     //get all pelanggan
     async index(user) {
-        
+
         var result = [];
-        if(user.level == "admin"){
+        if (user.level == "admin") {
             await Pelanggan.find()
                 .sort({ waktu_dibuat: -1 })
                 .then(function (list_pelanggan) {
-    
+
                     result = list_pelanggan;
-    
+
                 });
         } else {
             await Pelanggan.find({
@@ -30,9 +30,9 @@ class PelangganController {
             })
                 .sort({ waktu_dibuat: -1 })
                 .then(function (list_pelanggan) {
-    
+
                     result = list_pelanggan;
-    
+
                 });
         }
         return result;
@@ -40,11 +40,11 @@ class PelangganController {
 
     //get detail pelanggan
     async detail(pelanggan_id) {
-        
+
         return new Promise(resolve => {
             Pelanggan.aggregate([
                 {
-                    $match: { 
+                    $match: {
                         _id: mongoose.Types.ObjectId(pelanggan_id)
                     }
                 },
@@ -55,14 +55,14 @@ class PelangganController {
                         'foreignField': 'pelanggan_id',
                         'as': 'tagihans'
                     }
-                },  {
+                }, {
                     '$lookup': {
                         'from': 'pembayarans',
                         'localField': '_id',
                         'foreignField': 'pelanggan_id',
                         'as': 'pembayarans'
                     }
-                },{
+                }, {
                     '$group': {
                         '_id': '$_id',
                         'total_tagihan': {
@@ -111,7 +111,7 @@ class PelangganController {
                         }
                     }
                 }
-            ],function(err, result) {
+            ], function (err, result) {
                 resolve(result[0]);
             });
         });
@@ -126,7 +126,7 @@ class PelangganController {
 
     //create pelanggan
     async create(req, user) {
-        
+
         var result = null;
         // Create a Pelanggan object with escaped and trimmed data.
         const pelanggan = new Pelanggan({
@@ -167,7 +167,7 @@ class PelangganController {
 
     //update pelanggan
     async update(pelanggan_id, req) {
-        
+
 
         //const pelanggan = new Pelanggan();
 
@@ -186,21 +186,18 @@ class PelangganController {
 
     //delete pelanggan
     async delete(pelanggan_id) {
+        await Pelanggan.findByIdAndRemove(pelanggan_id);
+
+        //delete tagihan
+        await Tagihan.deleteMany({ pelanggan_id: pelanggan_id });
+        //delete pembayaran
+        await Pembayaran.deleteMany({ pelanggan_id: pelanggan_id });
         
-        var result = null;
-        await Pelanggan.findByIdAndRemove(pelanggan_id, function deletePelanggan(err) {
-            if (err) {
-                return next(err);
-            }
-            // Success - go to pelanggan list
-            result = "success";
-        });
-        return result;
+        return {berhasil:true};
     }
 
     async tagihanPelanggan7hari(user) {
         var aggregate = [
-   
             {
                 '$lookup': {
                     'from': 'tagihans',
@@ -208,14 +205,14 @@ class PelangganController {
                     'foreignField': 'pelanggan_id',
                     'as': 'tagihans'
                 }
-            },  {
+            }, {
                 '$lookup': {
                     'from': 'pembayarans',
                     'localField': '_id',
                     'foreignField': 'pelanggan_id',
                     'as': 'pembayarans'
                 }
-            },{
+            }, {
                 '$group': {
                     '_id': '$_id',
                     'total_tagihan': {
@@ -258,6 +255,9 @@ class PelangganController {
                     },
                     'no_telp': {
                         '$first': '$no_telp'
+                    },
+                    'user_id': {
+                        '$first': '$user_id'
                     }
                 }
             }, {
@@ -287,16 +287,7 @@ class PelangganController {
                         }
                     ]
                 }
-            },{
-                '$lookup': {
-                    'from': 'pelanggans',
-                    'localField': '_id',
-                    'foreignField': 'pelanggan_id',
-                    'as': 'pelanggan'
-                }
-            },
-            
-            {
+            }, {
                 '$unwind': {
                     'path': '$tagihan_terbaru',
                     'preserveNullAndEmptyArrays': true
@@ -311,23 +302,24 @@ class PelangganController {
                 }
             }
         ];
-        if(user.level != "admin"){
+        if (user.level != "admin") {
             aggregate.push({
                 '$match': {
-                    'pelanggan.user_id': user._id
+                    'user_id': user._id
                 }
             });
         }
 
         return new Promise(resolve => {
             var result = [];
+
             Pelanggan.aggregate(aggregate, function (e, list_tagihan) {
                 var today = new Date();
                 list_tagihan.forEach(function (tagihan) {
-                    
+                    console.log(tagihan);
                     var todayPlus6 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
                     todayPlus6.setDate(todayPlus6.getDate() + 6);
-
+                    console.log(todayPlus6);
                     if (today >= todayPlus6 && tagihan.sisa_tagihan > 0) {
                         result.push(tagihan);
                     }
@@ -338,44 +330,44 @@ class PelangganController {
     }
 
     async tambahPembayaran(pelanggan_id, req) {
-        
+
 
         var result = null;
-       
+
         const pembayaran = new Pembayaran({
-          pelanggan_id: mongoose.Types.ObjectId(`${pelanggan_id}`),//Types.ObjectId
-          tanggal_bayar: req.body.tanggal_bayar.split("-").reverse().join("-"),
-          total_bayar: req.body.total_bayar,
-          keterangan: req.body.keterangan,
+            pelanggan_id: mongoose.Types.ObjectId(`${pelanggan_id}`),//Types.ObjectId
+            tanggal_bayar: req.body.tanggal_bayar.split("-").reverse().join("-"),
+            total_bayar: req.body.total_bayar,
+            keterangan: req.body.keterangan,
         });
-    
+
         await pembayaran.save().then((pembayaran) => {
-          result = pembayaran;
+            result = pembayaran;
         })
-          .catch((error) => {
-            //When there are errors We handle them here
-            console.log(error);
-    
-    
-          })
+            .catch((error) => {
+                //When there are errors We handle them here
+                console.log(error);
+
+
+            })
         return result;
 
     }
 
     async getRiwayatPembayaran(pelanggan_id) {
-        
-    
+
+
         return new Promise(resolve => {
-          Pembayaran.aggregate([
-            {
-              '$match': {
-                'pelanggan_id': new mongoose.Types.ObjectId(`${pelanggan_id}`)
-              }
-            },
-            { $sort : { tanggal_bayar : -1 } }
-          ], function (e, r) {
-            resolve(r);
-          })
+            Pembayaran.aggregate([
+                {
+                    '$match': {
+                        'pelanggan_id': new mongoose.Types.ObjectId(`${pelanggan_id}`)
+                    }
+                },
+                { $sort: { tanggal_bayar: -1 } }
+            ], function (e, r) {
+                resolve(r);
+            })
         });
     }
 

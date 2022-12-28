@@ -14,69 +14,76 @@ class TagihanController {
   //get all tagihan
   async index(user) {
 
+    var aggregate = [
+      {
+        '$lookup': {
+          'from': 'pembayarans',
+          'localField': 'pelanggan_id',
+          'foreignField': 'pelanggan_id',
+          'as': 'pembayarans'
+        }
+      },
+      {
+        '$group': {
+          '_id': '$_id',
 
-    return new Promise(resolve => {
-
-      Tagihan.aggregate([
-        {
-          $lookup: {
-            'from': 'pembayarans',
-            'localField': 'pelanggan_id',
-            'foreignField': 'pelanggan_id',
-            'as': 'pembayarans'
-          }
-        },
-        {
-          '$group': {
-            '_id': '$_id',
-
-            'total_bayar': {
-              '$sum': {
-                '$reduce': {
-                  'input': "$pembayarans",
-                  'initialValue': 0,
-                  'in': { '$add': ["$$value", "$$this.total_bayar"] }
-                }
+          'total_bayar': {
+            '$sum': {
+              '$reduce': {
+                'input': "$pembayarans",
+                'initialValue': 0,
+                'in': { '$add': ["$$value", "$$this.total_bayar"] }
               }
-            },
-            'total_tagihan': {
-              '$first': '$total_tagihan'
-            },
-            'tanggal_tagihan': {
-              '$first': '$tanggal_tagihan'
-            },
-            'keterangan': {
-              '$first': '$keterangan'
-            },
-            'pembayaran': {
-              '$first': '$pembayaran'
-            },
-            'pelanggan_id': {
-              '$first': '$pelanggan_id'
             }
+          },
+          'total_tagihan': {
+            '$first': '$total_tagihan'
+          },
+          'tanggal_tagihan': {
+            '$first': '$tanggal_tagihan'
+          },
+          'keterangan': {
+            '$first': '$keterangan'
+          },
+          'pembayaran': {
+            '$first': '$pembayaran'
+          },
+          'pelanggan_id': {
+            '$first': '$pelanggan_id'
           }
-        }, {
-          '$addFields': {
-            'sisa_tagihan': {
-              '$subtract': [
-                '$total_tagihan', '$total_bayar'
-              ]
-            }
+        }
+      }, {
+        '$addFields': {
+          'sisa_tagihan': {
+            '$subtract': [
+              '$total_tagihan', '$total_bayar'
+            ]
           }
-        },
-        {
-          '$lookup': {
-            'from': 'pelanggans',
-            'localField': 'pelanggan_id',
-            'foreignField': '_id',
-            'as': 'pelanggan'
+        }
+      },
+      {
+        '$lookup': {
+          'from': 'pelanggans',
+          'localField': 'pelanggan_id',
+          'foreignField': '_id',
+          'as': 'pelanggan'
+        }
+      },
+      {
+        '$unwind': '$pelanggan'
+      },
+      { '$sort': { 'waktu_dibuat': -1 } }
+    ];
+    if(user.level != "admin"){
+      aggregate.push({
+          '$match': {
+              'pelanggan.user_id': user._id
           }
-        },
-        {
-          '$unwind': '$pelanggan'
-        },
-        { $sort: { tanggal_tagihan: -1 } }
-      ], function (e, r) {
+      });
+  }
+    return new Promise(resolve => {
+      
+      Tagihan.aggregate(aggregate, function (e, r) {
         resolve(r);
       });
     });
@@ -212,7 +219,7 @@ class TagihanController {
         {
           '$unwind': '$pelanggan'
         },
-        { $sort: { tanggal_tagihan: -1 } }
+        { '$sort': { 'waktu_dibuat': -1 } }
       ], function (e, list_tagihan) {
         var today = new Date();
         list_tagihan.forEach(function (tagihan) {
@@ -287,7 +294,7 @@ class TagihanController {
         {
           '$unwind': '$pelanggan'
         },
-        { $sort: { tanggal_tagihan: -1 } }
+        { $sort: { waktu_dibuat: -1 } }
       ], function (e, r) {
         resolve(r);
       })
