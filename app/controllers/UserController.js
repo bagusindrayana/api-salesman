@@ -40,13 +40,22 @@ class UserController {
         
         // Create a User object with escaped and trimmed data.
         var token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        const user = new User({
-            username: req.body.username,
-            password: bcrypt.hashSync(req.body.password, 16),
-            token:token
+        return new Promise(function(resolve, reject) {
+            const user = new User({
+                username: req.body.username,
+                password: bcrypt.hashSync(req.body.password, 16),
+                token:token,
+                level: req.body.level
+            });
+            user.save(function (err) {
+                if (err) {
+                    reject(err);
+                }
+                resolve(user);
+            });
         });
 
-        return new Promise(user.save());
+        
     
     }
 

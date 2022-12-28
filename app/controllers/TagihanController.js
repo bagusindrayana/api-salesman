@@ -12,8 +12,8 @@ class TagihanController {
 
   }
   //get all tagihan
-  async index() {
-    
+  async index(user) {
+
 
     return new Promise(resolve => {
 
@@ -29,7 +29,7 @@ class TagihanController {
         {
           '$group': {
             '_id': '$_id',
-            
+
             'total_bayar': {
               '$sum': {
                 '$reduce': {
@@ -86,7 +86,7 @@ class TagihanController {
 
   //get detail tagihan
   async detail(tagihan_id) {
-    
+
     var result = null;
     Tagihan.findById(tagihan_id)
       .populate("pelanggan_id")
@@ -99,7 +99,7 @@ class TagihanController {
 
   //create tagihan
   async create(req) {
-    
+
     console.log(req.body.pelanggan_id);
     var result = null;
     // Create a Tagihan object with escaped and trimmed data.
@@ -108,6 +108,7 @@ class TagihanController {
       tanggal_tagihan: req.body.tanggal_tagihan.split("-").reverse().join("-"),
       total_tagihan: req.body.total_tagihan,
       keterangan: req.body.keterangan,
+      cash: req.body.cash,
     });
 
     await tagihan.save().then((user) => {
@@ -123,30 +124,24 @@ class TagihanController {
   }
 
   //update tagihan
-  async update(req) {
-    
-    var result = null;
-    const tagihan = new Tagihan({
-      pelanggan_id: req.body.pelanggan_id,
-      tanggal_tagihan: req.body.tanggal_tagihan,
-      total_tagihan: req.body.total_tagihan,
-      keterangan: req.body.keterangan,
+  async update(tagihan_id, req) {
 
-    });
 
-    await Tagihan
-      .findByIdAndUpdate(req.params._id, tagihan, {}, function (err, thetagihan) {
-        if (err) {
-          return next(err);
-        }
-        result = thetagihan;
+    var result = await Tagihan
+      .findByIdAndUpdate(tagihan_id, {
+        tanggal_tagihan: req.body.tanggal_tagihan,
+        total_tagihan: req.body.total_tagihan,
+        keterangan: req.body.keterangan,
+        cash: req.body.cash
+      }, {
+        new: true
       });
     return result;
   }
 
   //delete tagihan
   async delete(req, res) {
-    
+
     var result = false;
     Tagihan.findByIdAndRemove(req.params.id, function deleteTagihan(err) {
       if (err) {
@@ -161,7 +156,7 @@ class TagihanController {
 
   //get all tagihan after tanggal_tagihan past 7 days
   async getTagihan7Hari() {
-    
+
 
     return new Promise(resolve => {
       var result = [];
@@ -235,7 +230,7 @@ class TagihanController {
   }
 
   async getTagihanByPelanggan(pelanggan_id) {
-    
+
 
     return new Promise(resolve => {
       Tagihan.aggregate([
@@ -344,7 +339,7 @@ class TagihanController {
   }
 
   async bayarTagihan(tagihan_id, req) {
-    
+
     var result = null;
     await Tagihan.findOneAndUpdate({ _id: mongoose.Types.ObjectId(tagihan_id) },
       { $push: { "pembayaran": { "total_bayar": parseInt(req.body.total_bayar), "tanggal_bayar": req.body.tanggal_bayar, "keterangan": req.body.keterangan } } })

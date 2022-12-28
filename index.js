@@ -68,11 +68,12 @@ app.get('/stat', async (req, res) => {
 
 //get pelanggan
 app.get('/pelanggan', async (req, res) => {
-    if(await auth.verifyToken(req) == null){
+    var user = await auth.verifyToken(req);
+    if(user == null){
       return res.status(401).send({ message : "Token tidak valid"});
     }
     var pelangganController = new PelangganController();
-    var result = await pelangganController.index();
+    var result = await pelangganController.index(user);
     res.send({message:"berhasil",data:result});
 });
 
@@ -116,11 +117,12 @@ app.post('/pelanggan', async (req, res) => {
 });
 
 app.get('/tagihan', async (req, res) => {
-  if(await auth.verifyToken(req) == null){
-    return res.status(401).send({ message : "Token tidak valid"});
-  }
+  var user = await auth.verifyToken(req);
+    if(user == null){
+      return res.status(401).send({ message : "Token tidak valid"});
+    }
   var tagihanController = new TagihanController();
-  var result = await tagihanController.index();
+  var result = await tagihanController.index(user);
   res.send({message:"berhasil",data:result});
 });
 
@@ -139,6 +141,20 @@ app.post('/tagihan', async (req, res) => {
     }
 });
 
+app.post('/tagihan/:tagihan_id', async (req, res) => {
+  var user = await auth.verifyToken(req);
+    if(user == null){
+      return res.status(401).send({ message : "Token tidak valid"});
+    }
+    var tagihanController = new TagihanController();
+    var result = await tagihanController.update(req.params.tagihan_id,req);
+    if(result == null){
+      res.status(500).send({ message: "tagihan gagal di ubah"});
+    } else {
+      res.send({message:"berhasil mengubah tagihan",data:result});
+    }
+});
+
 //tagihan minggu ini yang belum lunas
 app.get('/tagihan-minggu-ini', async (req, res) => {
   var user = await auth.verifyToken(req);
@@ -146,7 +162,7 @@ app.get('/tagihan-minggu-ini', async (req, res) => {
       return res.status(401).send({ message : "Token tidak valid"});
     }
     var pelangganController = new PelangganController();
-    var result = await pelangganController.tagihanPelanggan7hari();
+    var result = await pelangganController.tagihanPelanggan7hari(user);
     if(result == null){
       res.status(500).send({ message: "tagihan gagal di muat"});
     } else {

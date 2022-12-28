@@ -6,7 +6,8 @@ const Tagihan = new Schema({
     tanggal_tagihan: { type: Date },
     total_tagihan: { type: Number },
     keterangan: { type: String },
-    waktu_dibuat: { type: Date, default: Date.now }
+    waktu_dibuat: { type: Date, default: Date.now },
+    cash : { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model("Tagihan", Tagihan);

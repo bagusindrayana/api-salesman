@@ -13,16 +13,28 @@ class PelangganController {
     }
 
     //get all pelanggan
-    async index() {
+    async index(user) {
         
         var result = [];
-        await Pelanggan.find()
-            .sort({ waktu_dibuat: -1 })
-            .then(function (list_pelanggan) {
-
-                result = list_pelanggan;
-
-            });
+        if(user.level == "admin"){
+            await Pelanggan.find()
+                .sort({ waktu_dibuat: -1 })
+                .then(function (list_pelanggan) {
+    
+                    result = list_pelanggan;
+    
+                });
+        } else {
+            await Pelanggan.find({
+                'user_id': user._id
+            })
+                .sort({ waktu_dibuat: -1 })
+                .then(function (list_pelanggan) {
+    
+                    result = list_pelanggan;
+    
+                });
+        }
         return result;
     }
 
@@ -186,122 +198,137 @@ class PelangganController {
         return result;
     }
 
-    async tagihanPelanggan7hari() {
-        
+    async tagihanPelanggan7hari(user) {
+        var aggregate = [
+   
+            {
+                '$lookup': {
+                    'from': 'tagihans',
+                    'localField': '_id',
+                    'foreignField': 'pelanggan_id',
+                    'as': 'tagihans'
+                }
+            },  {
+                '$lookup': {
+                    'from': 'pembayarans',
+                    'localField': '_id',
+                    'foreignField': 'pelanggan_id',
+                    'as': 'pembayarans'
+                }
+            },{
+                '$group': {
+                    '_id': '$_id',
+                    'total_tagihan': {
+                        '$sum': {
+                            '$reduce': {
+                                'input': '$tagihans',
+                                'initialValue': 0,
+                                'in': {
+                                    '$add': [
+                                        '$$value', '$$this.total_tagihan'
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    'total_bayar': {
+                        '$sum': {
+                            '$reduce': {
+                                'input': '$pembayarans',
+                                'initialValue': 0,
+                                'in': {
+                                    '$add': [
+                                        '$$value', '$$this.total_bayar'
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    'latitude': {
+                        '$first': '$latitude'
+                    },
+                    'longitude': {
+                        '$first': '$longitude'
+                    },
+                    'nama_usaha': {
+                        '$first': '$nama_usaha'
+                    },
+                    'alamat': {
+                        '$first': '$alamat'
+                    },
+                    'no_telp': {
+                        '$first': '$no_telp'
+                    }
+                }
+            }, {
+                '$lookup': {
+                    'from': 'tagihans',
+                    'let': {
+                        'pelanggan_id': '$_id'
+                    },
+                    'localField': '_id',
+                    'foreignField': 'pelanggan_id',
+                    'as': 'tagihan_terbaru',
+                    'pipeline': [
+                        {
+                            '$match': {
+                                '$expr': {
+                                    '$eq': [
+                                        '$pelanggan_id', '$$pelanggan_id'
+                                    ]
+                                }
+                            }
+                        }, {
+                            '$sort': {
+                                'tanggal_tagihan': -1
+                            }
+                        }, {
+                            '$limit': 1
+                        }
+                    ]
+                }
+            },{
+                '$lookup': {
+                    'from': 'pelanggans',
+                    'localField': '_id',
+                    'foreignField': 'pelanggan_id',
+                    'as': 'pelanggan'
+                }
+            },
+            
+            {
+                '$unwind': {
+                    'path': '$tagihan_terbaru',
+                    'preserveNullAndEmptyArrays': true
+                }
+            }, {
+                '$addFields': {
+                    'sisa_tagihan': {
+                        '$subtract': [
+                            '$total_tagihan', '$total_bayar'
+                        ]
+                    }
+                }
+            }
+        ];
+        if(user.level != "admin"){
+            aggregate.push({
+                '$match': {
+                    'pelanggan.user_id': user._id
+                }
+            });
+        }
 
         return new Promise(resolve => {
             var result = [];
-            Pelanggan.aggregate([
-   
-                    {
-                        '$lookup': {
-                            'from': 'tagihans',
-                            'localField': '_id',
-                            'foreignField': 'pelanggan_id',
-                            'as': 'tagihans'
-                        }
-                    },  {
-                        '$lookup': {
-                            'from': 'pembayarans',
-                            'localField': '_id',
-                            'foreignField': 'pelanggan_id',
-                            'as': 'pembayarans'
-                        }
-                    },{
-                        '$group': {
-                            '_id': '$_id',
-                            'total_tagihan': {
-                                '$sum': {
-                                    '$reduce': {
-                                        'input': '$tagihans',
-                                        'initialValue': 0,
-                                        'in': {
-                                            '$add': [
-                                                '$$value', '$$this.total_tagihan'
-                                            ]
-                                        }
-                                    }
-                                }
-                            },
-                            'total_bayar': {
-                                '$sum': {
-                                    '$reduce': {
-                                        'input': '$pembayarans',
-                                        'initialValue': 0,
-                                        'in': {
-                                            '$add': [
-                                                '$$value', '$$this.total_bayar'
-                                            ]
-                                        }
-                                    }
-                                }
-                            },
-                            'latitude': {
-                                $first: '$latitude'
-                            },
-                            'longitude': {
-                                $first: '$longitude'
-                            },
-                            'nama_usaha': {
-                                $first: '$nama_usaha'
-                            },
-                            'alamat': {
-                                $first: '$alamat'
-                            },
-                            'no_telp': {
-                                $first: '$no_telp'
-                            }
-                        }
-                    }, {
-                        '$lookup': {
-                            'from': 'tagihans',
-                            'let': {
-                                'pelanggan_id': '$_id'
-                            },
-                            'localField': '_id',
-                            'foreignField': 'pelanggan_id',
-                            'as': 'tagihan_terbaru',
-                            'pipeline': [
-                                {
-                                    '$match': {
-                                        '$expr': {
-                                            '$eq': [
-                                                '$pelanggan_id', '$$pelanggan_id'
-                                            ]
-                                        }
-                                    }
-                                }, {
-                                    '$sort': {
-                                        'tanggal_tagihan': -1
-                                    }
-                                }, {
-                                    '$limit': 1
-                                }
-                            ]
-                        }
-                    }, {
-                        '$unwind': {
-                            'path': '$tagihan_terbaru',
-                            'preserveNullAndEmptyArrays': true
-                        }
-                    }, {
-                        '$addFields': {
-                            'sisa_tagihan': {
-                                '$subtract': [
-                                    '$total_tagihan', '$total_bayar'
-                                ]
-                            }
-                        }
-                    }
-                ]
-            , function (e, list_tagihan) {
+            Pelanggan.aggregate(aggregate, function (e, list_tagihan) {
                 var today = new Date();
                 list_tagihan.forEach(function (tagihan) {
                     
-                    var todayPlus7 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
-                    todayPlus7.setDate(todayPlus7.getDate() + 7);
+                    var todayPlus6 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
+                    todayPlus6.setDate(todayPlus6.getDate() + 6);
 
-                    if (today >= todayPlus7 && tagihan.sisa_tagihan > 0) {
+                    if (today >= todayPlus6 && tagihan.sisa_tagihan > 0) {
                         result.push(tagihan);
                     }
                 });
