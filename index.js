@@ -14,7 +14,16 @@ const port = 3000
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-mongoose.connect(db.mongo_uri());
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(db.mongo_uri());
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
+}
+
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -179,8 +188,12 @@ app.get('/riwayat-pembayaran/:pelanggan_id', async (req, res) => {
   var result = await pelangganController.getRiwayatPembayaran(req.params.pelanggan_id);
   res.send({message:"berhasil",data:result});
 });
-app.listen(process.env.PORT || port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+
+connectDB().then(() => {
+  app.listen(process.env.PORT || port, () => {
+    console.log(`Example app listening on port ${port}`)
+  });
+});
+
 
 module.exports = app;
