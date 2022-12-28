@@ -63,11 +63,22 @@ app.get('/pelanggan', async (req, res) => {
     res.send({message:"berhasil",data:result});
 });
 
+
+//update pelanggan
+app.post('/pelanggan/:id', async (req, res) => {
+  if(await auth.verifyToken(req) == null){
+    return res.status(401).send({ message : "Token tidak valid"});
+  }
+  var pelangganController = new PelangganController();
+  var result = await pelangganController.update(req.params.id,req);
+  res.send({message:"berhasil",data:result});
+});
+
 //detail pelanggan
 app.get('/pelanggan/:id', async (req, res) => {
-    var pelangganController = new PelangganController();
-    var result = await pelangganController.detail(req.params.id);
-    res.send({message:"berhasil",data:result});
+  var pelangganController = new PelangganController();
+  var result = await pelangganController.detail(req.params.id);
+  res.send({message:"berhasil",data:result});
 });
 
 app.get('/tagihan-pelanggan/:id', async (req, res) => {
@@ -91,6 +102,15 @@ app.post('/pelanggan', async (req, res) => {
     }
 });
 
+app.get('/tagihan', async (req, res) => {
+  if(await auth.verifyToken(req) == null){
+    return res.status(401).send({ message : "Token tidak valid"});
+  }
+  var tagihanController = new TagihanController();
+  var result = await tagihanController.index();
+  res.send({message:"berhasil",data:result});
+});
+
 //create tagihan
 app.post('/tagihan', async (req, res) => {
   var user = await auth.verifyToken(req);
@@ -112,8 +132,8 @@ app.get('/tagihan-minggu-ini', async (req, res) => {
     if(user == null){
       return res.status(401).send({ message : "Token tidak valid"});
     }
-    var tagihanController = new TagihanController();
-    var result = await tagihanController.getTagihan7Hari();
+    var pelangganController = new PelangganController();
+    var result = await pelangganController.tagihanPelanggan7hari();
     if(result == null){
       res.status(500).send({ message: "tagihan gagal di muat"});
     } else {
@@ -135,6 +155,26 @@ app.post('/bayar-tagihan/:tagihan_id', async (req, res) => {
     }
 });
 
+app.post('/tambah-pembayaran/:pelanggan_id', async (req, res) => {
+  var user = await auth.verifyToken(req);
+    if(user == null){
+      return res.status(401).send({ message : "Token tidak valid"});
+    }
+    var pelangganController = new PelangganController();
+    var result = await pelangganController.tambahPembayaran(req.params.pelanggan_id,req);
+    if(result == null){
+      res.status(500).send({ message: "pembayaran gagal di tambah"});
+    } else {
+      res.send({message:"berhasil menambah pembayaran",data:result});
+    }
+});
+
+
+app.get('/riwayat-pembayaran/:pelanggan_id', async (req, res) => {
+  var pelangganController = new PelangganController();
+  var result = await pelangganController.getRiwayatPembayaran(req.params.pelanggan_id);
+  res.send({message:"berhasil",data:result});
+});
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })

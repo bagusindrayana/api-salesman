@@ -17,6 +17,14 @@ class StatController {
     
         //sum total_tagihan from Tagihan
         await Tagihan.aggregate([
+          {
+            '$lookup': {
+                'from': 'pembayarans',
+                'localField': 'pelanggan_id',
+                'foreignField': 'pelanggan_id',
+                'as': 'pembayarans'
+            }
+        },
             {
                 '$group': {
                     '_id': '$_id',
@@ -24,7 +32,7 @@ class StatController {
                     'total_bayar': {
                       '$sum': {
                         '$reduce': {
-                          'input': "$pembayaran",
+                          'input': "$pembayarans",
                           'initialValue': 0,
                           'in': { '$add': ["$$value", "$$this.total_bayar"] }
                         }
@@ -56,7 +64,8 @@ class StatController {
                     ]
                   }
                 }
-              },{"$unset": ["_id"]}
+              },{"$unset": ["_id"]},
+              { $sort : { tanggal_tagihan : -1 } }
         ],function (e,v) {
             for (let index = 0; index < v.length; index++) {
                 const element = v[index];
