@@ -13,7 +13,7 @@ class TagihanController {
   }
   //get all tagihan
   async index() {
-    await mongoose.connect(db.mongo_uri());
+    
 
     return new Promise(resolve => {
 
@@ -86,7 +86,7 @@ class TagihanController {
 
   //get detail tagihan
   async detail(tagihan_id) {
-    await mongoose.connect(db.mongo_uri());
+    
     var result = null;
     Tagihan.findById(tagihan_id)
       .populate("pelanggan_id")
@@ -99,7 +99,7 @@ class TagihanController {
 
   //create tagihan
   async create(req) {
-    await mongoose.connect(db.mongo_uri());
+    
     console.log(req.body.pelanggan_id);
     var result = null;
     // Create a Tagihan object with escaped and trimmed data.
@@ -124,7 +124,7 @@ class TagihanController {
 
   //update tagihan
   async update(req) {
-    await mongoose.connect(db.mongo_uri());
+    
     var result = null;
     const tagihan = new Tagihan({
       pelanggan_id: req.body.pelanggan_id,
@@ -146,7 +146,7 @@ class TagihanController {
 
   //delete tagihan
   async delete(req, res) {
-    await mongoose.connect(db.mongo_uri());
+    
     var result = false;
     Tagihan.findByIdAndRemove(req.params.id, function deleteTagihan(err) {
       if (err) {
@@ -161,7 +161,7 @@ class TagihanController {
 
   //get all tagihan after tanggal_tagihan past 7 days
   async getTagihan7Hari() {
-    await mongoose.connect(db.mongo_uri());
+    
 
     return new Promise(resolve => {
       var result = [];
@@ -235,7 +235,7 @@ class TagihanController {
   }
 
   async getTagihanByPelanggan(pelanggan_id) {
-    await mongoose.connect(db.mongo_uri());
+    
 
     return new Promise(resolve => {
       Tagihan.aggregate([
@@ -344,7 +344,7 @@ class TagihanController {
   }
 
   async bayarTagihan(tagihan_id, req) {
-    await mongoose.connect(db.mongo_uri());
+    
     var result = null;
     await Tagihan.findOneAndUpdate({ _id: mongoose.Types.ObjectId(tagihan_id) },
       { $push: { "pembayaran": { "total_bayar": parseInt(req.body.total_bayar), "tanggal_bayar": req.body.tanggal_bayar, "keterangan": req.body.keterangan } } })

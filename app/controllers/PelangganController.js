@@ -14,7 +14,7 @@ class PelangganController {
 
     //get all pelanggan
     async index() {
-        await mongoose.connect(db.mongo_uri());
+        
         var result = [];
         await Pelanggan.find()
             .sort({ waktu_dibuat: -1 })
@@ -28,7 +28,7 @@ class PelangganController {
 
     //get detail pelanggan
     async detail(pelanggan_id) {
-        await mongoose.connect(db.mongo_uri());
+        
         return new Promise(resolve => {
             Pelanggan.aggregate([
                 {
@@ -114,7 +114,7 @@ class PelangganController {
 
     //create pelanggan
     async create(req, user) {
-        await mongoose.connect(db.mongo_uri());
+        
         var result = null;
         // Create a Pelanggan object with escaped and trimmed data.
         const pelanggan = new Pelanggan({
@@ -155,7 +155,7 @@ class PelangganController {
 
     //update pelanggan
     async update(pelanggan_id, req) {
-        await mongoose.connect(db.mongo_uri());
+        
 
         //const pelanggan = new Pelanggan();
 
@@ -174,7 +174,7 @@ class PelangganController {
 
     //delete pelanggan
     async delete(pelanggan_id) {
-        await mongoose.connect(db.mongo_uri());
+        
         var result = null;
         await Pelanggan.findByIdAndRemove(pelanggan_id, function deletePelanggan(err) {
             if (err) {
@@ -187,7 +187,7 @@ class PelangganController {
     }
 
     async tagihanPelanggan7hari() {
-        await mongoose.connect(db.mongo_uri());
+        
 
         return new Promise(resolve => {
             var result = [];
@@ -311,7 +311,7 @@ class PelangganController {
     }
 
     async tambahPembayaran(pelanggan_id, req) {
-        await mongoose.connect(db.mongo_uri());
+        
 
         var result = null;
        
@@ -336,7 +336,7 @@ class PelangganController {
     }
 
     async getRiwayatPembayaran(pelanggan_id) {
-        await mongoose.connect(db.mongo_uri());
+        
     
         return new Promise(resolve => {
           Pembayaran.aggregate([

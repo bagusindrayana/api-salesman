@@ -1,6 +1,8 @@
 const auth = require('./app/middleware/auth');
 const express = require('express')
 const bodyParser = require('body-parser')
+const db = require("../configs/database");
+const mongoose = require("mongoose");
 const PelangganController = require('./app/controllers/PelangganController')
 const TagihanController = require('./app/controllers/TagihanController')
 const LoginController = require('./app/controllers/LoginController');
@@ -11,6 +13,8 @@ const port = 3000
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+mongoose.connect(db.mongo_uri());
 
 app.get('/', (req, res) => {
   res.send('Hello World!')

@@ -12,7 +12,7 @@ class UserController {
 
     //get all User
     async index()  {
-        await mongoose.connect(db.mongo_uri());
+        
         var result = [];
         await User.find()
             .then(function ( list_User) {
@@ -25,7 +25,7 @@ class UserController {
 
     //get detail User
     async detail(user_id) {
-        await mongoose.connect(db.mongo_uri());
+        
         var result = null;
         await User.findById(user_id)
             .then(function(detail_User) {
@@ -37,7 +37,7 @@ class UserController {
 
     //create User
     async create(req) {
-        await mongoose.connect(db.mongo_uri());
+        
         // Create a User object with escaped and trimmed data.
         var token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         const user = new User({
@@ -52,7 +52,7 @@ class UserController {
 
     //update User
     async update(req) {
-        await mongoose.connect(db.mongo_uri());
+        
         var result = null;
         const user = new User({
             username: req.body.username,
@@ -71,7 +71,7 @@ class UserController {
 
     //delete User
     async delete(user_id) {
-        await mongoose.connect(db.mongo_uri());
+        
         var result = null;
         await user.findByIdAndRemove(user_id, function deleteUser(err) {
             if (err) {

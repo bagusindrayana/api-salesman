@@ -10,7 +10,7 @@ class StatController {
     }
 
     async index() {
-        await mongoose.connect(db.mongo_uri());
+        
         var total_pelanggan = 0;
         var total_tagihan = 0;
 
