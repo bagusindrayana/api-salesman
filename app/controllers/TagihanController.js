@@ -107,7 +107,6 @@ class TagihanController {
   //create tagihan
   async create(req) {
 
-    console.log(req.body.pelanggan_id);
     var result = null;
     // Create a Tagihan object with escaped and trimmed data.
     const tagihan = new Tagihan({

@@ -150,7 +150,7 @@ class PelangganController {
 
 
 
-        if (req.body.tanggal_tagihan != undefined && req.body.total_tagihan != undefined) {
+        if (req.body.tanggal_tagihan != undefined && req.body.total_tagihan != undefined && req.body.total_tagihan != null && req.body.total_tagihan != "") {
             var tanggal = req.body.tanggal_tagihan;
             //d-m-Y to Y-m-d
             var tanggal_tagihan = tanggal.split("-").reverse().join("-");

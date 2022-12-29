@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const Pembayaran = new Schema({
     pelanggan_id : { type: Schema.Types.ObjectId, ref: 'Pelanggan' },
     tanggal_bayar: { type: Date },
-    total_bayar: { type: Number },
+    total_bayar: { type: Number, default: 0 },
     keterangan: { type: String },
     waktu_dibuat: { type: Date, default: Date.now }
 });
