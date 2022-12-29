@@ -162,6 +162,12 @@ app.post('/tagihan/:tagihan_id', async (req, res) => {
     }
 });
 
+app.post('/tagihan/:tagihan_id/delete', async (req, res) => {
+  var tagihanController = new TagihanController();
+  var result = await tagihanController.delete(req.params.tagihan_id);
+  res.send({message:"berhasil",data:result});
+});
+
 //tagihan minggu ini yang belum lunas
 app.get('/tagihan-minggu-ini', async (req, res) => {
   var user = await auth.verifyToken(req);

@@ -74,15 +74,15 @@ class TagihanController {
       },
       { '$sort': { 'waktu_dibuat': -1 } }
     ];
-    if(user.level != "admin"){
+    if (user.level != "admin") {
       aggregate.push({
-          '$match': {
-              'pelanggan.user_id': user._id
-          }
+        '$match': {
+          'pelanggan.user_id': user._id
+        }
       });
-  }
+    }
     return new Promise(resolve => {
-      
+
       Tagihan.aggregate(aggregate, function (e, r) {
         resolve(r);
       });
@@ -146,18 +146,12 @@ class TagihanController {
   }
 
   //delete tagihan
-  async delete(req, res) {
+  async delete(tagihan_id) {
 
-    var result = false;
-    Tagihan.findByIdAndRemove(req.params.id, function deleteTagihan(err) {
-      if (err) {
-        return next(err);
-      }
+    await Tagihan.findByIdAndRemove(tagihan_id);
 
-      result = true;
-    });
 
-    return result;
+    return { berhasil: true };
   }
 
   //get all tagihan after tanggal_tagihan past 7 days
