@@ -319,10 +319,20 @@ class PelangganController {
                     console.log(tagihan);
                     var todayPlus6 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
                     todayPlus6.setDate(todayPlus6.getDate() + 6);
-                    console.log(todayPlus6);
-                    if (today >= todayPlus6 && tagihan.sisa_tagihan > 0) {
+                    const date1 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
+                    const date2 = new Date();
+                    const diffTime = Math.abs(date2 - date1);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    const kelipatan6Hari = diffDays % 6;
+                    const kelipatan7Hari = diffDays % 7;
+                    if (kelipatan6Hari == 0 && tagihan.sisa_tagihan > 0) {
+                        result.push(tagihan);
+                    } else if (kelipatan7Hari == 0 && tagihan.sisa_tagihan > 0) {
                         result.push(tagihan);
                     }
+                    // if (today >= todayPlus6 && tagihan.sisa_tagihan > 0) {
+                    //     result.push(tagihan);
+                    // }
                 });
                 resolve(result);
             })
