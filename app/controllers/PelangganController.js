@@ -212,7 +212,8 @@ class PelangganController {
                     'foreignField': 'pelanggan_id',
                     'as': 'pembayarans'
                 }
-            }, {
+            }, 
+            {
                 '$group': {
                     '_id': '$_id',
                     'total_tagihan': {
@@ -292,6 +293,18 @@ class PelangganController {
                     'path': '$tagihan_terbaru',
                     'preserveNullAndEmptyArrays': true
                 }
+            },{
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'user_id',
+                    'foreignField': '_id',
+                    'as': 'user'
+                }
+            }, 
+            {
+                '$unwind': {
+                    'path': '$user',
+                }
             }, {
                 '$addFields': {
                     'sisa_tagihan': {
@@ -316,7 +329,6 @@ class PelangganController {
             Pelanggan.aggregate(aggregate, function (e, list_tagihan) {
                 var today = new Date();
                 list_tagihan.forEach(function (tagihan) {
-                    console.log(tagihan);
                     var todayPlus6 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
                     todayPlus6.setDate(todayPlus6.getDate() + 6);
                     const date1 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
@@ -375,6 +387,21 @@ class PelangganController {
                     }
                 },
                 { $sort: { tanggal_bayar: -1 } }
+            ], function (e, r) {
+                resolve(r);
+            })
+        });
+    }
+
+    async getPelangganByKurir(user_id) {
+        return new Promise(resolve => {
+            Pelanggan.aggregate([
+                {
+                    '$match': {
+                        'user_id': new mongoose.Types.ObjectId(`${user_id}`)
+                    }
+                },
+                { $sort: { nama_usaha: 1 } }
             ], function (e, r) {
                 resolve(r);
             })

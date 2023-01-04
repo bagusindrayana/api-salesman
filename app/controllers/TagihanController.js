@@ -349,6 +349,8 @@ class TagihanController {
       });
     return result;
   }
+
+  
 }
 
 module.exports = TagihanController;
