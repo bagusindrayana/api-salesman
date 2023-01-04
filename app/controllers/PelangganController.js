@@ -329,19 +329,22 @@ class PelangganController {
             Pelanggan.aggregate(aggregate, function (e, list_tagihan) {
                 var today = new Date();
                 list_tagihan.forEach(function (tagihan) {
-                    var todayPlus6 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
-                    todayPlus6.setDate(todayPlus6.getDate() + 6);
-                    const date1 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
-                    const date2 = new Date();
-                    const diffTime = Math.abs(date2 - date1);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                    const kelipatan6Hari = diffDays % 6;
-                    const kelipatan7Hari = diffDays % 7;
-                    if (kelipatan6Hari == 0 && tagihan.sisa_tagihan > 0) {
-                        result.push(tagihan);
-                    } else if (kelipatan7Hari == 0 && tagihan.sisa_tagihan > 0) {
-                        result.push(tagihan);
+                    if(tagihan.tagihan_terbaru != null && tagihan.tagihan_terbaru != undefined){
+                        var todayPlus6 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
+                        todayPlus6.setDate(todayPlus6.getDate() + 6);
+                        const date1 = new Date(tagihan.tagihan_terbaru.tanggal_tagihan);
+                        const date2 = new Date();
+                        const diffTime = Math.abs(date2 - date1);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                        const kelipatan6Hari = diffDays % 6;
+                        const kelipatan7Hari = diffDays % 7;
+                        if (kelipatan6Hari == 0 && tagihan.sisa_tagihan > 0) {
+                            result.push(tagihan);
+                        } else if (kelipatan7Hari == 0 && tagihan.sisa_tagihan > 0) {
+                            result.push(tagihan);
+                        }
                     }
+                    
                     // if (today >= todayPlus6 && tagihan.sisa_tagihan > 0) {
                     //     result.push(tagihan);
                     // }

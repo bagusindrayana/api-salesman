@@ -45,7 +45,6 @@ app.post("/check-login", async (req, res) => {
   if (user == null) {
     res.status(401).send({ message: "Token tidak valid" });
   }
-  console.log(user);
   res.send({ message: "berhasil login", data: user });
 });
 
